@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import logoWhite from "@/assets/logo-white.png";
 import logoBlack from "@/assets/logo-black.png";
 import logoOracle from "@/assets/logo with oracle.png";
+import logoOracleBlack from "@/assets/logo with oracle-black.png";
 
 export function Nav() {
   const { theme, toggle } = useTheme();
@@ -33,16 +34,16 @@ export function Nav() {
         <div className="flex items-center gap-4">
           <a href="#top" className="hover:opacity-90 transition-opacity">
             <img
-              src={theme === "dark" ? logoWhite.src : logoBlack.src}
+              src={theme === "dark" ? logoBlack.src : logoBlack.src}
               alt="Accelalpha Logo"
               className="h-10 md:h-11 w-auto object-contain"
             />
           </a>
           <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800" />
           <img
-            src={logoOracle.src}
+            src={theme === "dark" ? logoOracleBlack.src : logoOracle.src}
             alt="Oracle Partner"
-            className="h-9 md:h-10 w-auto object-contain"
+            className="h-11 md:h-12 w-auto object-contain"
           />
         </div>
 
