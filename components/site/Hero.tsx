@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "motion/react";
+import { motion, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useState } from "react";
 import heroShip from "@/assets/hero-ship.jpg";
 
@@ -46,6 +46,30 @@ const itemVariants = {
 export function Hero() {
   const c = useCountdown(EVENT_TARGET);
 
+  // Motion values to track mouse coordinate offsets on the countdown card
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  // Map mouse offsets to degrees of 3D rotation (max 10 degrees)
+  const rotateX = useTransform(y, [-150, 150], [10, -10]);
+  const rotateY = useTransform(x, [-150, 150], [-10, 10]);
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    // Compute cursor offset relative to the center of the card
+    const mouseX = event.clientX - rect.left - width / 2;
+    const mouseY = event.clientY - rect.top - height / 2;
+    x.set(mouseX);
+    y.set(mouseY);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
   return (
     <section className="relative min-h-screen pt-16 overflow-hidden bg-hero-gradient">
       {/* Ken Burns slow background scale on load */}
@@ -60,6 +84,33 @@ export function Hero() {
         className="absolute inset-0 size-full object-cover opacity-50 mix-blend-luminosity pointer-events-none"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-deep via-deep/40 to-transparent pointer-events-none" />
+
+      {/* Drifting backdrop glowing orbs for advanced visual depth */}
+      <motion.div
+        animate={{
+          x: [0, 40, 0],
+          y: [0, -30, 0],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 12,
+          ease: "easeInOut",
+        }}
+        className="absolute top-1/4 left-1/12 size-96 rounded-full bg-coral/10 blur-3xl pointer-events-none"
+      />
+      <motion.div
+        animate={{
+          x: [0, -30, 0],
+          y: [0, 40, 0],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 10,
+          ease: "easeInOut",
+          delay: 1.5,
+        }}
+        className="absolute bottom-1/4 right-1/10 size-96 rounded-full bg-surf/10 blur-3xl pointer-events-none"
+      />
 
       <div className="relative max-w-7xl mx-auto px-6 pt-24 pb-32 grid lg:grid-cols-12 gap-12 items-center">
         {/* Staggered text element introduction */}
@@ -106,18 +157,22 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Hover-reactive glass countdown card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: 0.45, type: "spring", stiffness: 100, damping: 18 }}
-          whileHover={{ y: -5 }}
-          className="lg:col-span-5"
-        >
-          <div className="rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-6 shadow-deep hover:border-white/20 transition-colors duration-300">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/60">Countdown to embark</p>
+        {/* 3D Parallax Perspective Card Container */}
+        <div className="lg:col-span-5 [perspective:1000px]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 0.45, type: "spring", stiffness: 100, damping: 18 }}
+            style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            whileHover={{ y: -5 }}
+            className="rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-6 shadow-deep hover:border-white/20 transition-colors duration-300 cursor-default select-none"
+          >
+            {/* translateZ offsets separate elements in 3D space on hover */}
+            <p className="text-xs uppercase tracking-[0.2em] text-white/60 [transform:translateZ(20px)]">Countdown to embark</p>
             
-            <div className="mt-4 grid grid-cols-4 gap-2 text-white">
+            <div className="mt-4 grid grid-cols-4 gap-2 text-white [transform:translateZ(45px)]">
               {[
                 { v: c.days, l: "Days" },
                 { v: c.hours, l: "Hours" },
@@ -126,8 +181,8 @@ export function Hero() {
               ].map(({ v, l }) => (
                 <motion.div 
                   key={l}
-                  whileHover={{ scale: 1.06, borderColor: "rgba(238, 77, 72, 0.4)" }}
-                  className="rounded-xl bg-deep/40 border border-white/5 p-3 text-center transition-colors duration-300 cursor-default"
+                  whileHover={{ scale: 1.08, borderColor: "rgba(238, 77, 72, 0.5)", backgroundColor: "rgba(238, 77, 72, 0.05)" }}
+                  className="rounded-xl bg-deep/40 border border-white/5 p-3 text-center transition-colors duration-300"
                 >
                   <div className="font-display text-3xl md:text-4xl tabular-nums" suppressHydrationWarning>
                     {c.ready ? String(v).padStart(2, "0") : "—"}
@@ -137,13 +192,13 @@ export function Hero() {
               ))}
             </div>
             
-            <div className="mt-6 pt-6 border-t border-white/10 text-sm text-white/70 space-y-1.5">
+            <div className="mt-6 pt-6 border-t border-white/10 text-sm text-white/70 space-y-1.5 [transform:translateZ(30px)]">
               <div className="flex justify-between"><span>Date</span><span className="text-white">19 Nov 2026</span></div>
               <div className="flex justify-between"><span>Time</span><span className="text-white">09:30 - 02:00</span></div>
               <div className="flex justify-between"><span>Venue</span><span className="text-white">The Palm, Dubai</span></div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
 
       {/* Wave divider */}

@@ -43,7 +43,7 @@ export function Nav() {
           <img
             src={theme === "dark" ? logoOracleBlack.src : logoOracle.src}
             alt="Oracle Partner"
-            className="h-11 md:h-12 w-auto object-contain"
+            className={`${theme === "dark" ? "h-7 md:h-8" : "h-9 md:h-10"} w-auto object-contain`}
           />
         </div>
 
